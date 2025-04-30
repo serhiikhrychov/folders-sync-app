@@ -1,4 +1,7 @@
 ﻿using folders_sync;
+using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Extensions.Logging;
 
 public class FolderSyncApp
 {
@@ -15,10 +18,19 @@ public class FolderSyncApp
             return;
         }
         
-        Logger logger = new Logger(_logFilePath);
+        // Override the log file path
+        Environment.SetEnvironmentVariable("LogFilePath", _logFilePath);
+        
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.ClearProviders();
+            builder.AddNLog();
+        });
+        
+        var logger = loggerFactory.CreateLogger<FolderSyncApp>();
         FolderSyncService folderSyncService = new FolderSyncService(_sourcePath, _replicaPath, logger);
         
-        logger.Log($"Starting folder synchronization from {_sourcePath} to {_replicaPath} every {_syncIntervalInMilliseconds / 1000} seconds.");
+        logger.LogInformation($"Starting folder synchronization from {_sourcePath} to {_replicaPath} every {_syncIntervalInMilliseconds / 1000} seconds.");
 
         while (true)
         {
@@ -28,7 +40,7 @@ public class FolderSyncApp
             }
             catch (Exception ex)
             {
-                logger.Log($"Error during synchronization: {ex.Message}");
+                logger.LogError($"Error during synchronization: {ex.Message}");
             }
 
             await Task.Delay(_syncIntervalInMilliseconds);
