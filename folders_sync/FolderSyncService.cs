@@ -1,12 +1,13 @@
 ﻿namespace folders_sync;
+using Microsoft.Extensions.Logging;
 
 public class FolderSyncService
 {
     private readonly string _sourcePath;
     private readonly string _replicaPath;
-    private readonly Logger _logger;
+    private readonly ILogger _logger;
 
-    public FolderSyncService(string sourcePath, string replicaPath, Logger logger)
+    public FolderSyncService(string sourcePath, string replicaPath, ILogger logger)
     {
         _sourcePath = sourcePath;
         _replicaPath = replicaPath;
@@ -29,11 +30,11 @@ public class FolderSyncService
                 try
                 {
                     File.Delete(file);
-                    _logger.Log($"Deleted extra file: {file}");
+                    _logger.LogInformation($"Deleted extra file: {file}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.Log($"Failed to delete file: {file}. Error: {ex.Message}");
+                    _logger.LogError($"Failed to delete file: {file}. Error: {ex.Message}");
                 }
             }
         }
@@ -46,11 +47,11 @@ public class FolderSyncService
                 try
                 {
                     Directory.Delete(directory, true);
-                    _logger.Log($"Deleted extra directory: {directory}");
+                    _logger.LogInformation($"Deleted extra directory: {directory}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.Log($"Failed to delete directory: {directory}. Error: {ex.Message}");
+                    _logger.LogError($"Failed to delete directory: {directory}. Error: {ex.Message}");
                 }
             }
             else
@@ -69,7 +70,7 @@ public class FolderSyncService
             if (!File.Exists(destinationFile) || File.GetLastWriteTimeUtc(file) > File.GetLastWriteTimeUtc(destinationFile))
             {
                 File.Copy(file, destinationFile, true);
-                _logger.Log($"Copied file: {file} to {destinationFile}");
+                _logger.LogInformation($"Copied file: {file} to {destinationFile}");
             }
         }
 
